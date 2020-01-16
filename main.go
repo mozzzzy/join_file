@@ -233,6 +233,7 @@ func main() {
 
 	// Move temporary file to artifact path
 	if renameErr := os.Rename(tmpFilePath, artifactFilePath); renameErr != nil {
+		os.Remove(tmpFilePath)
 		printErrorAndWaitEsc(
 			"Failed to rename temporary file to \"" + artifactFilePath + "\"." + renameErr.Error())
 		return
