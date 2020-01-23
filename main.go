@@ -12,9 +12,6 @@ import (
 	"strings"
 
 	"github.com/mozzzzy/clitool"
-	"github.com/mozzzzy/clitool/checkbox"
-	"github.com/mozzzzy/clitool/errorMessage"
-	"github.com/mozzzzy/clitool/message"
 )
 
 /*
@@ -60,15 +57,9 @@ func getPartialFilePaths(partialFileDir, partialFilePrefix string) ([]string, er
 	return partialFiles, nil
 }
 
-func printError(msg string) {
-	err := errorMessage.New(msg)
-	clitool.Print(err)
-}
-
 func printErrorAndWaitEsc(msg string) {
-	printError(msg)
-	message := message.New("Please esc key to exit.")
-	clitool.Print(message)
+	clitool.Error(msg)
+	clitool.Message("Please esc key to exit.")
 	clitool.WaitEsc()
 	return
 }
@@ -213,14 +204,15 @@ func main() {
 		printErrorAndWaitEsc(getCurrentFilePathsErr.Error())
 	}
 	if currentFilePaths == nil {
-		printError("Failed to find current setting.")
+		clitool.Error("Failed to find current setting.")
 	}
 
 	// Provide checkbox
-	chkbox := checkbox.New(
-		"Please choose all files you want to join with "+artifactFilePath, partialFilePaths)
-	chkbox.Check(currentFilePaths)
-	usedPartialFiles := clitool.Inquire(chkbox).([]string)
+	usedPartialFiles := clitool.Checkbox(
+		"Please choose all files you want to join with "+artifactFilePath,
+		partialFilePaths,
+		currentFilePaths,
+	)
 
 	// Sort usedPartialFiles
 	sort.Strings(usedPartialFiles)
