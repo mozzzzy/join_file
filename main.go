@@ -6,11 +6,15 @@ package main
 
 import (
 	"crypto/md5"
+	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"sort"
 	"strings"
 
+	"github.com/mozzzzy/arguments"
+	"github.com/mozzzzy/arguments/option"
 	"github.com/mozzzzy/clitool"
 )
 
@@ -27,12 +31,9 @@ const (
 )
 
 var (
-	artifactFilePath  string      = "/etc/hosts"
-	artifactMode      os.FileMode = 0644
-	partialFileDir    string      = "/etc/"
-	partialFilePrefix string      = "hosts_"
-	tmpFileDir        string      = "/tmp"
-	tmpFilePrefix     string      = "join_file."
+	artifactMode  os.FileMode = 0644
+	tmpFileDir    string      = "/tmp"
+	tmpFilePrefix string      = "join_file."
 )
 
 /*
@@ -180,8 +181,33 @@ func getCurrentFilePaths(partialFilePaths []string, currentFilePath string) ([]s
 }
 
 func main() {
+
+	var args arguments.Args
+	args.AddOptions([]option.Option{
+		option.Option{
+			LongKey:     "file",
+			ShortKey:    "f",
+			Description: "Specify file you want to create.",
+			ValueType:   "string",
+			Required:    true,
+		},
+	})
+	if optParseErr := args.Parse(); optParseErr != nil {
+		fmt.Println(optParseErr)
+		fmt.Println(args)
+		return
+	}
+
 	clitool.Init()
 	defer clitool.Close()
+
+	artifactFilePath, getStrErr := args.GetString("file")
+	if getStrErr != nil {
+		printErrorAndWaitEsc(getStrErr.Error())
+		return
+	}
+	partialFileDir := filepath.Dir(artifactFilePath)
+	partialFilePrefix := filepath.Base(artifactFilePath) + "_"
 
 	// Get partial file list
 	partialFilePaths, getPartialFilePathsErr :=
