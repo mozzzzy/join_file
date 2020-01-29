@@ -42,6 +42,7 @@ var (
 
 func getPartialFilePaths(partialFileDir, partialFilePrefix string) ([]string, error) {
 	var partialFiles []string
+	// Get all files in partial file directory
 	files, readDirErr := ioutil.ReadDir(partialFileDir)
 	if readDirErr != nil {
 		return nil, readDirErr
@@ -53,7 +54,7 @@ func getPartialFilePaths(partialFileDir, partialFilePrefix string) ([]string, er
 		if file.IsDir() {
 			continue
 		}
-		partialFiles = append(partialFiles, file.Name())
+		partialFiles = append(partialFiles, partialFileDir+"/"+file.Name())
 	}
 	return partialFiles, nil
 }
@@ -108,7 +109,7 @@ func createJoinedFile(partialFiles []string) (string, error) {
 	// Read each partial files and write into tmp file
 	for _, partialFilePath := range partialFiles {
 		// Read file data
-		data, readSize, readFileErr := readFile(partialFileDir + partialFilePath)
+		data, readSize, readFileErr := readFile(partialFilePath)
 		if readFileErr != nil {
 			return "", readFileErr
 		}
@@ -201,6 +202,7 @@ func main() {
 	clitool.Init()
 	defer clitool.Close()
 
+	// Get artifact file path from command line option
 	artifactFilePath, getStrErr := args.GetString("file")
 	if getStrErr != nil {
 		printErrorAndWaitEsc(getStrErr.Error())
@@ -209,7 +211,7 @@ func main() {
 	partialFileDir := filepath.Dir(artifactFilePath)
 	partialFilePrefix := filepath.Base(artifactFilePath) + "_"
 
-	// Get partial file list
+	// Get partial file list (the paths are absolute path)
 	partialFilePaths, getPartialFilePathsErr :=
 		getPartialFilePaths(partialFileDir, partialFilePrefix)
 	// Something error was occurred
